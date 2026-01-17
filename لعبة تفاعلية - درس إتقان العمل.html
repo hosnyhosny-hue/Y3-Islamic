@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لعبة إتقان العمل - الحديث الشريف</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(#e3f2fd, #ffffff);
+    text-align: center;
+}
+
+.container {
+    max-width: 720px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #0d47a1;
+}
+
+.lesson {
+    font-size: 18px;
+    color: #1565c0;
+    margin-bottom: 15px;
+}
+
+input {
+    font-family: 'Cairo', sans-serif;
+}
+
+.question-box {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 30px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.question {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a237e;
+    margin-bottom: 30px;
+    line-height: 1.8;
+}
+
+.options button {
+    display: block;
+    width: 100%;
+    margin: 12px 0;
+    padding: 16px;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    background: #bbdefb;
+}
+
+.options button:hover {
+    background: #90caf9;
+}
+
+.correct {
+    background: #a5d6a7 !important;
+}
+
+.wrong {
+    background: #ef9a9a !important;
+}
+
+.stars {
+    font-size: 34px;
+    margin-top: 15px;
+    color: gold;
+}
+
+.footer {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #555;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="correctSound">
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_0c8a61f3c5.mp3">
+</audio>
+
+<audio id="wrongSound">
+<source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_8b3c02c7d7.mp3">
+</audio>
+
+<div class="container">
+    <h1>🎯 لعبة إتقان العمل</h1>
+    <div class="lesson">الدرس: إتقان العمل – الحديث الشريف</div>
+
+    <!-- اسم الطالب -->
+    <input 
+        id="studentName"
+        type="text"
+        placeholder="✏️ اكتب اسمك هنا"
+        style="font-size:18px;padding:10px;border-radius:10px;width:80%;margin-bottom:15px;"
+        required
+    >
+
+    <div class="question-box">
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+        <div id="effect"></div>
+    </div>
+
+    <div class="footer">
+        سؤال <span id="num"></span> من 30
+    </div>
+</div>
+
+<script>
+let score = 0;
+let index = 0;
+
+const questions = [
+{q:"ما معنى إتقان العمل؟", o:["العمل بسرعة","العمل بإهمال","العمل بإحسان وجودة","ترك العمل"], a:2},
+{q:"إتقان العمل يدل على صفة:", o:["الكسل","الأمانة","الإهمال","الضعف"], a:1},
+{q:"ماذا يحب الله من العبد؟", o:["ترك العمل","إتقان العمل","العمل القليل","العمل بلا نية"], a:1},
+{q:"من فوائد إتقان العمل:", o:["ضياع الوقت","كثرة الأخطاء","رضا الله","التعب فقط"], a:2},
+{q:"الشخص المتقن لعمله يكون:", o:["مهملًا","محبوبًا","غير منظم","كسولًا"], a:1},
+{q:"إتقان العمل يساعد على:", o:["فشل المجتمع","تقدم المجتمع","الخصام","الكسل"], a:1},
+{q:"الطالب المتقن لواجباته يكون:", o:["مهملاً","ناجحًا","غاضبًا","متأخرًا"], a:1},
+{q:"من أمثلة إتقان العمل:", o:["اللعب وقت الدراسة","حل الواجب بدقة","ترك الدفتر","نسيان الأدوات"], a:1},
+{q:"إتقان العمل يعني أداء العمل:", o:["بلا اهتمام","بإهمال","بجودة","بسرعة فقط"], a:2},
+{q:"العامل المتقن لعمله:", o:["يخطئ كثيرًا","لا يهتم","ينجح","يتأخر"], a:2}
+];
+
+function loadQuestion() {
+    document.getElementById("effect").innerHTML = "";
+    document.getElementById("num").innerText = index + 1;
+    document.getElementById("question").innerText = questions[index].q;
+
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+
+    questions[index].o.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(btn, i);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function checkAnswer(button, choice) {
+    if (choice === questions[index].a) {
+        score++;
+        button.classList.add("correct");
+        document.getElementById("correctSound").play();
+        document.getElementById("effect").innerHTML = "<div class='stars'>⭐ ✨ ⭐</div>";
+
+        setTimeout(() => {
+            index++;
+            if (index < questions.length) {
+                loadQuestion();
+            } else {
+                sendToGoogleForm();
+                document.querySelector(".question-box").innerHTML = `
+                <h2>🎉 أحسنت!</h2>
+                <p>درجتك: ${score} من ${questions.length}</p>
+                <p>تم إرسال نتيجتك للمعلم ✅</p>`;
+            }
+        }, 1200);
+    } else {
+        button.classList.add("wrong");
+        document.getElementById("wrongSound").play();
+    }
+}
+
+function sendToGoogleForm() {
+    const name = document.getElementById("studentName").value || "بدون اسم";
+
+    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSeifiKjJlRkg-GZXgjNgp46NueplB4qyQL1Xvvo2t28CGmBIA/formResponse";
+
+    const data = new FormData();
+    data.append("entry.761892910", name);   // اسم الطالب
+    data.append("entry.693136832", score);  // الدرجة
+
+    fetch(formURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: data
+    });
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
